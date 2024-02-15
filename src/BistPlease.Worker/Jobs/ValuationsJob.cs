@@ -2,6 +2,7 @@
 using BistPlease.Domain;
 using BistPlease.Worker.Core;
 using BistPlease.Worker.Core.HttpClients;
+using BistPlease.Worker.Repositories;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,18 +16,22 @@ public class ValuationsJob : IJob
     private readonly IAngleSharpWrapper _angleSharpWrapper;
     private readonly IsYatirimSettings _settings;
     private readonly IIsInvestmentHttpClient _isInvestmentHttpClient;
+    private readonly IValuationsRepository _valuationsRepository;
     public static readonly JobKey Key = new(nameof(ValuationsJob), "IsYatirim");
 
     public ValuationsJob(ILogger<ValuationsJob> logger,
     IAngleSharpWrapper angleSharpWrapper,
     IOptions<IsYatirimSettings> settings,
-    IIsInvestmentHttpClient isInvestmentHttpClient)
+    IIsInvestmentHttpClient isInvestmentHttpClient,
+    IValuationsRepository valuationsRepository)
     {
         _logger = logger;
         _angleSharpWrapper = angleSharpWrapper;
         _settings = settings.Value;
         _isInvestmentHttpClient = isInvestmentHttpClient;
-    }
+        _valuationsRepository = valuationsRepository;
+
+	}
 
     public async Task Execute(IJobExecutionContext context)
     {
@@ -36,7 +41,12 @@ public class ValuationsJob : IJob
             _logger.Log(LogLevel.Error, BistPleaseErrors.SectorListParseError);
             return;
         }
-        throw new NotImplementedException();
+        var sectors = SectorListModule.GetInnerSectorArray(sectorList);
+        foreach(var sector in sectors)
+        {
+            await _valuationsRepository.UpsertSector(sector);
+            await _valuationsRepository.UpsertCompanies(sector.Companies);
+        }
     }
 
     private async Task<SectorList> GetSectorList()
@@ -94,7 +104,7 @@ public class ValuationsJob : IJob
         if (summary is null || financials is null) { return result.ToArray(); }
         for (var i = 0; i < summary.Children.Length; i++)
         {
-            var company = await ExtractCompany(summary.Children[i], financials.Children[i]);
+            var company = ExtractCompany(summary.Children[i], financials.Children[i]);
             if (company.IsError)
             {
                 _logger.LogWarning("Company parsing error {0}", company.FirstError);
@@ -105,7 +115,7 @@ public class ValuationsJob : IJob
         return result.ToArray();
     }
 
-    private async Task<ErrorOr<Company>> ExtractCompany(IElement summary, IElement financialsElement)
+    private ErrorOr<Company> ExtractCompany(IElement summary, IElement financialsElement)
     {
         if (!decimal.TryParse(summary.Children[3].TextContent, out decimal lastPriceRaw)) { return Error.Validation(BistPleaseErrors.LastPriceParseError); }
         if (!decimal.TryParse(summary.Children[4].TextContent, out decimal marketWorthRaw)) { return Error.Validation(BistPleaseErrors.MarketWorthParseError); }
@@ -117,20 +127,19 @@ public class ValuationsJob : IJob
         var companySymbol = SymbolModule.Create(summary.Children[0].TextContent);
         if (companySymbol.IsError) return Error.Validation(companySymbol.ErrorValue.ToString());
 
-        var financeData = await _isInvestmentHttpClient.GetFinancials(SymbolModule.Value(companySymbol.ResultValue));
-        if (financeData?.Financials is null || financeData.Financials.Count == 0)
-            return Error.NotFound("Company financials not found");
+       // var financeData = await _isInvestmentHttpClient.GetFinancials(SymbolModule.Value(companySymbol.ResultValue));
+       //if (financeData?.Financials is null || financeData.Financials.Count == 0)
+       //     return Error.NotFound("Company financials not found");
 
-        var profits = financeData.GetProfits();
-        var operationProfits = financeData.GetOperationProfits();
-        if (profits.IsError || operationProfits.IsError)
-            return Error.NotFound("Company financials not found");
+        //var profits = financeData.GetProfits();
+        //var operationProfits = financeData.GetOperationProfits();
+        //if (profits.IsError || operationProfits.IsError)
+        //    return Error.NotFound("Company financials not found");
 
         var company = CompanyModule.Create(summary.Children[0].TextContent,
         summary.Children[1].TextContent,
-        lastPriceRaw, marketWorthRaw, publicRatioRaw, capitalRaw, peRaw, pbRaw, 
-        financialsElement.Children[6].TextContent, CompanyFinancialsModule.Create(profits.Value, operationProfits.Value),
-        Currency.TL);
+        lastPriceRaw, marketWorthRaw, publicRatioRaw, capitalRaw, peRaw, pbRaw,
+        Currency.TRY);
 
         if (company.IsError) return Error.Validation(company.ErrorValue.ToString());
 

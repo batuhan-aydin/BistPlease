@@ -42,10 +42,10 @@ type Company = {
     MarketValue: Worth
     PublicOwnershipRatio: PublicOwnershipRatio
     Capital: Worth
-    PE: PriceEarnings
+    PriceEarnings: PriceEarnings
     PriceToBook: PriceToBook
-    LastBalanceTerm: LastBalanceTerm
-    Financials: CompanyFinancials
+    //LastBalanceTerm: LastBalanceTerm
+    //Financials: CompanyFinancials
 }
 
 type Sector = {
@@ -93,7 +93,7 @@ module CompanyFinancials =
             financials
 
 module Company = 
-    let Create rawSymbol rawName (rawLastClosingPrice : decimal) (rawMarketValue : decimal) rawPublicOwnershipRatio (rawCapital : decimal) rawPriceEarnings rawPriceToBook rawLastBalanceTerm companyFinancials (currency : Currency) : Result<Company, ValidationError> =
+    let Create rawSymbol rawName (rawLastClosingPrice : decimal) (rawMarketValue : decimal) rawPublicOwnershipRatio (rawCapital : decimal) rawPriceEarnings rawPriceToBook (currency : Currency) : Result<Company, ValidationError> =
         result {
             let! symbol = rawSymbol |> Symbol.Create 
             let! name = rawName |> Name.Create 
@@ -101,13 +101,15 @@ module Company =
             let! marketValue = Worth.Create(rawMarketValue, currency)
             let! publicOwnershipRatio = rawPublicOwnershipRatio |> PublicOwnershipRatio.Create
             let! capital = Worth.Create(rawCapital, currency)
-            let! pe = rawPriceEarnings |> PriceEarnings.Create 
+            let! priceEarnings = rawPriceEarnings |> PriceEarnings.Create 
             let! priceToBook = rawPriceToBook |> PriceToBook.Create
-            let! lastBalanceTerm = rawLastBalanceTerm |> LastBalanceTerm.Create
+            //let! lastBalanceTerm = rawLastBalanceTerm |> LastBalanceTerm.Create
             let company = { Symbol = symbol; Name = name; LastClosingPrice = lastClosingPrice;
             MarketValue = marketValue; PublicOwnershipRatio = publicOwnershipRatio; 
-            Capital = capital; PE = pe; PriceToBook = priceToBook; LastBalanceTerm = lastBalanceTerm;
-            Financials = companyFinancials }
+            Capital = capital; PriceEarnings = priceEarnings; PriceToBook = priceToBook; 
+            //LastBalanceTerm = lastBalanceTerm;
+            //Financials = companyFinancials 
+            }
             return company
         } 
 

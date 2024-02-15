@@ -4,7 +4,7 @@ open System.Runtime.CompilerServices
 open System
 
 [<IsReadOnly; Struct>]
-type Currency = TL | USD
+type Currency = TRY | USD
 
 [<IsReadOnly; Struct>]
 type Symbol = private Symbol of string
