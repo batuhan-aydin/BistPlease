@@ -1,4 +1,4 @@
-﻿using BistPlease.Worker.Jobs;
+﻿using ValueVest.Worker.Jobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,12 +6,12 @@ using Polly.Extensions.Http;
 using Polly;
 using Quartz;
 using Polly.Retry;
-using BistPlease.Worker.Core.Data;
+using ValueVest.Worker.Core.Data;
 using System.Collections.Frozen;
-using BistPlease.Worker.Core.HttpClients;
-using BistPlease.Worker.Core;
+using ValueVest.Worker.Core.HttpClients;
+using ValueVest.Worker.Core;
 
-namespace BistPlease.Worker;
+namespace ValueVest.Worker;
 
 internal class Program
 {

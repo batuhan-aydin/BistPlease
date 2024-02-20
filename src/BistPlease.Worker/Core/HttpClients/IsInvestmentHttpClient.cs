@@ -1,8 +1,8 @@
-﻿using BistPlease.Domain;
-using BistPlease.Worker.Models;
+﻿using ValueVest.Domain;
+using ValueVest.Worker.Models;
 using System.Net.Http.Json;
 
-namespace BistPlease.Worker.Core.HttpClients;
+namespace ValueVest.Worker.Core.HttpClients;
 
 public class IsInvestmentHttpClient : IIsInvestmentHttpClient
 {

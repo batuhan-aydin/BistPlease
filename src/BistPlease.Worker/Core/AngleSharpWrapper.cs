@@ -1,7 +1,7 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp;
 
-namespace BistPlease.Worker.Core;
+namespace ValueVest.Worker.Core;
 
 public class AngleSharpWrapper : IAngleSharpWrapper
 {

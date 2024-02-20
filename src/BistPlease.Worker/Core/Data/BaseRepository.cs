@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using System.Data;
 
-namespace BistPlease.Worker.Core.Data;
+namespace ValueVest.Worker.Core.Data;
 
 public abstract class BaseRepository
 {

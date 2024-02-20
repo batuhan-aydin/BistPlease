@@ -1,4 +1,4 @@
-﻿namespace BistPlease.Domain
+﻿namespace ValueVest.Domain
 
 open FsToolkit.ErrorHandling
 open System

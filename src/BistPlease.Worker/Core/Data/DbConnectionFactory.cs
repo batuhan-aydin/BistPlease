@@ -2,7 +2,7 @@
 using System.Collections.Frozen;
 using System.Data;
 
-namespace BistPlease.Worker.Core.Data;
+namespace ValueVest.Worker.Core.Data;
 
 public class DbConnectionFactory : IDbConnectionFactory
 {

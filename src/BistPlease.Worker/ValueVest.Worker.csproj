@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BistPlease.Domain\BistPlease.Domain.fsproj" />
+    <ProjectReference Include="..\BistPlease.Domain\ValueVest.Domain.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

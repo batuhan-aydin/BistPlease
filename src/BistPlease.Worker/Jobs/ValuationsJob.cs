@@ -1,14 +1,14 @@
 ﻿using AngleSharp.Dom;
-using BistPlease.Domain;
-using BistPlease.Worker.Core;
-using BistPlease.Worker.Core.HttpClients;
-using BistPlease.Worker.Repositories;
+using ValueVest.Domain;
+using ValueVest.Worker.Core;
+using ValueVest.Worker.Core.HttpClients;
+using ValueVest.Worker.Repositories;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz;
 
-namespace BistPlease.Worker.Jobs;
+namespace ValueVest.Worker.Jobs;
 
 public class ValuationsJob : IJob
 {

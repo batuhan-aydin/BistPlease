@@ -1,4 +1,4 @@
-﻿namespace BistPlease.Worker;
+﻿namespace ValueVest.Worker;
 
 public static class BistPleaseErrors
 {

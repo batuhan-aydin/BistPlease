@@ -1,6 +1,6 @@
-﻿using BistPlease.Domain;
+﻿using ValueVest.Domain;
 
-namespace BistPlease.Worker;
+namespace ValueVest.Worker;
 
 public sealed record IsYatirimSettings
 {

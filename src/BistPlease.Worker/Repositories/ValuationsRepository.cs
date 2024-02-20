@@ -1,7 +1,7 @@
-﻿using BistPlease.Domain;
-using BistPlease.Worker.Core.Data;
+﻿using ValueVest.Domain;
+using ValueVest.Worker.Core.Data;
 
-namespace BistPlease.Worker.Repositories;
+namespace ValueVest.Worker.Repositories;
 
 public class ValuationsRepository : BaseRepository, IValuationsRepository
 {

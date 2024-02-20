@@ -1,4 +1,4 @@
-﻿namespace BistPlease.Worker.Core.Data;
+﻿namespace ValueVest.Worker.Core.Data;
 
 public enum DatabaseConnection
 {

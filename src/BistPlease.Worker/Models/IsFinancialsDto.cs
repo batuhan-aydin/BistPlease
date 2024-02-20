@@ -1,8 +1,8 @@
-﻿using BistPlease.Domain;
+﻿using ValueVest.Domain;
 using ErrorOr;
 using System.Text.Json.Serialization;
 
-namespace BistPlease.Worker.Models;
+namespace ValueVest.Worker.Models;
 
 public sealed record IsFinancialsDto
 {

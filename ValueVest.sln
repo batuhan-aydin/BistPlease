@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{32F950BB-62B7-46E7-914D-298FF438EB7A}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "BistPlease.Domain", "src\BistPlease.Domain\BistPlease.Domain.fsproj", "{5153356B-8532-498B-AA5D-FB160BB10E42}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ValueVest.Domain", "src\BistPlease.Domain\ValueVest.Domain.fsproj", "{5153356B-8532-498B-AA5D-FB160BB10E42}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BistPlease.Worker", "src\BistPlease.Worker\BistPlease.Worker.csproj", "{C168F502-86CE-43D4-85A7-FA9989BF80A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ValueVest.Worker", "src\BistPlease.Worker\ValueVest.Worker.csproj", "{C168F502-86CE-43D4-85A7-FA9989BF80A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

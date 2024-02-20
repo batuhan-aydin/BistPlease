@@ -1,6 +1,6 @@
 ﻿using Quartz;
 
-namespace BistPlease.Worker;
+namespace ValueVest.Worker;
 
 public class App
 {

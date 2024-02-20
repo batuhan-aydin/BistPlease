@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "BistPlease.Worker": {
+    "ValueVest.Worker": {
       "commandName": "Project"
     },
     "Docker": {

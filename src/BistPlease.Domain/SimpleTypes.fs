@@ -1,4 +1,4 @@
-﻿namespace BistPlease.Domain
+﻿namespace ValueVest.Domain
 
 open System.Runtime.CompilerServices
 open System
