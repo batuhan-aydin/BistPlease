@@ -1,15 +1,14 @@
-﻿using ValueVest.Worker.Jobs;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Polly.Extensions.Http;
 using Polly;
-using Quartz;
+using Polly.Extensions.Http;
 using Polly.Retry;
-using ValueVest.Worker.Core.Data;
+using Quartz;
 using System.Collections.Frozen;
-using ValueVest.Worker.Core.HttpClients;
-using ValueVest.Worker.Core;
+using ValueVest.Worker.Core.Data;
+using ValueVest.Worker.Jobs;
+using ValueVest.Worker.Models;
 
 namespace ValueVest.Worker;
 
@@ -38,29 +37,29 @@ internal class Program
             {
                 IConfiguration configuration = hostContext.Configuration;
                 services.Configure<IsYatirimSettings>(configuration.GetSection(nameof(IsYatirimSettings)));
-                var dbConnections = new Dictionary<DatabaseConnection, string>
+				services.Configure<DataSources>(configuration.GetSection(nameof(DataSources)));
+				var dbConnections = new Dictionary<DatabaseConnection, string>
                 {
                     { DatabaseConnection.BistDb, configuration.GetConnectionString("BistDb") ?? throw new ArgumentNullException() },
                 }.ToFrozenDictionary();
-                services.AddSingleton<FrozenDictionary<DatabaseConnection, string>>(dbConnections);
+                services.AddSingleton(dbConnections);
                 services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
                 services.AddSingleton<App>();
-                services.AddSingleton<IAngleSharpWrapper, AngleSharpWrapper>();
                 services.AddQuartz(options =>
                 {
                     options.ScheduleJob<ValuationsJob>(trigger => trigger
                         .ForJob(ValuationsJob.Key)
                         .WithIdentity(ValuationsJob.Key.ToString())
+                        //.StartAt(new DateTimeOffset())
                         .WithSimpleSchedule(SimpleScheduleBuilder.RepeatHourlyForever()));
                 });
 
-                var financialsUrl = configuration.GetSection(nameof(IsYatirimSettings)).GetValue<string>("BaseFinancialsUrl");
-                services.AddHttpClient<IIsInvestmentHttpClient, IsInvestmentHttpClient>(client =>
-                {
-                    client.BaseAddress = new Uri(financialsUrl ?? throw new ArgumentNullException(nameof(financialsUrl)));
-                })
-                 .AddPolicyHandler(GetRetryPolicy());
+                //var financialsUrl = configuration.GetSection(nameof(IsYatirimSettings)).GetValue<string>("BaseFinancialsUrl");
+				
+				services.AddHttpClient();
+
                 });
+
     }
 
     private static AsyncRetryPolicy<HttpResponseMessage> GetRetryPolicy()

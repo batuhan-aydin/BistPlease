@@ -51,8 +51,8 @@ type Company = {
 type Sector = {
     Id: SectorId
     Name: Name
-    Average_PE : PriceEarnings
-    Avegage_PB : PriceToBook
+    PriceEarnings : PriceEarnings
+    PriceToBook : PriceToBook
     Companies: Company[]
 }
 

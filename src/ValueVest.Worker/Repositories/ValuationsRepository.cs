@@ -11,13 +11,12 @@ public class ValuationsRepository : BaseRepository, IValuationsRepository
 
     public Task<int> UpsertSector(Sector sector)
     {
-        var query = @"INSERT INTO sector (id, name, average_pe, average_pb)
-                    VALUES (@Id, @Name, @Average_PE, @Average_PB)
+        var query = @"INSERT INTO sector (id, name, price_earnings, price_to_book)
+                    VALUES (@Id, @Name, @PriceEarnings, @PriceToBook)
                     ON CONFLICT(id) DO UPDATE SET
-                        name = @Name,
-                        average_pe = @Average_PE,
-                        average_pb = @Average_PB,
-                        last_modified_date = CURRENT_TIMESTAMP;";
+                    name = @Name,
+                    price_earnings = @PriceEarnings,
+                    price_to_book = @PriceToBook";
         return ExecuteAsync(query, sector);
     }
 

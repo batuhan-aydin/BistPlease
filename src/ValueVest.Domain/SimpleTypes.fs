@@ -16,10 +16,10 @@ type Price = private Price of decimal
 type Name = private Name of string
 
 [<IsReadOnly; Struct>]
-type PriceEarnings = private PriceEarnings of decimal
+type PriceEarnings = private PriceEarnings of float32
 
 [<IsReadOnly; Struct>]
-type PriceToBook = private PriceToBook of decimal
+type PriceToBook = private PriceToBook of float32
 
 [<IsReadOnly; Struct>]
 type SectorId = private SectorId of int
@@ -91,8 +91,8 @@ module Name =
 module PriceEarnings = 
     let Value(PriceEarnings pe) = pe
 
-    let Create (rawPriceEarnings: decimal) : Result<PriceEarnings, ValidationError> =
-        if (rawPriceEarnings < 0.0M) then
+    let Create (rawPriceEarnings: float32) : Result<PriceEarnings, ValidationError> =
+        if (rawPriceEarnings < 0.0f) then
             InvalidPriceEarnings |> Error 
         else 
             PriceEarnings(rawPriceEarnings) |> Ok
@@ -100,8 +100,8 @@ module PriceEarnings =
 module PriceToBook = 
     let Value(PriceToBook pb) = pb
 
-    let Create(rawPriceToBook: decimal) : Result<PriceToBook, ValidationError> =
-        if (rawPriceToBook < 0.0M) then
+    let Create(rawPriceToBook: float32) : Result<PriceToBook, ValidationError> =
+        if (rawPriceToBook < 0.0f) then
             InvalidPriceToBook|> Error 
         else 
             PriceToBook(rawPriceToBook) |> Ok

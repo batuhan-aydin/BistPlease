@@ -1,0 +1,6 @@
+@ValueVest.Source.Bist_HostAddress = http://localhost:5128
+
+GET {{ValueVest.Source.Bist_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
