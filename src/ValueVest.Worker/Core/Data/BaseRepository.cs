@@ -3,15 +3,11 @@ using System.Data;
 
 namespace ValueVest.Worker.Core.Data;
 
-public abstract class BaseRepository
+public abstract class BaseRepository(IDbConnectionFactory connectionFactory)
 {
-    protected IDbConnectionFactory ConnectionFactory;
-    public BaseRepository(IDbConnectionFactory connectionFactory)
-    {
-        ConnectionFactory = connectionFactory;
-    }
+    protected IDbConnectionFactory ConnectionFactory = connectionFactory;
 
-    public virtual async Task<IEnumerable<T>> GetEnumerableAsync<T>(string sql, object? parameter = null)
+	public virtual async Task<IEnumerable<T>> GetEnumerableAsync<T>(string sql, object? parameter = null)
     {
         using (IDbConnection connection = ConnectionFactory.CreateDbConnection(DatabaseConnection.BistDb))
         {

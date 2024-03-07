@@ -2,7 +2,7 @@
 
 public static class BistPleaseErrors
 {
-    public const string SectorListParseError = "Failed to parse sector list";
+    public const string CompanyListParseError = "Failed to fetch companies";
     public const string LastPriceParseError = "Failed to parse last price";
     public const string MarketWorthParseError = "Failed to parse market worth";
     public const string PublicRatioParseError = "Failed to parse public ratio";

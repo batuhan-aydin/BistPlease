@@ -11,66 +11,48 @@ public class IsInvestmentService : IIsInvestmentService
 {
 	private readonly IWebParser _parser;
 	private readonly IsInvestmentSettings _settings;
+	private readonly ExhangesApiSettings _exchangeSettings;
 	private readonly ILogger _logger;
+	private readonly IHttpClientFactory _httpClientFactory;
 
-	public IsInvestmentService(IWebParser parser, IOptions<IsInvestmentSettings> settings, ILogger logger)
+	public IsInvestmentService(IWebParser parser,
+	IOptions<IsInvestmentSettings> settings,
+	ILogger logger,
+	IHttpClientFactory httpClientFactory,
+	ExhangesApiSettings exchangeSettings)
 	{
 		_parser = parser;
 		_settings = settings.Value;
 		_logger = logger;
+		_httpClientFactory = httpClientFactory;
+		_exchangeSettings = exchangeSettings;
 	}
 
-	public async Task<SectorList> GetValuations()
+	public async Task<IEnumerable<Company>> GetCompanyValuations()
 	{
-		var document = await _parser.GetDocumentAsync(_settings.GetUrl(SectorIdModule.Create(1).ResultValue));
+		var exchangeRates = await GetTryExchangeRates();
+		if (exchangeRates is null || !exchangeRates.UsdTryValue.HasValue)
+			return Enumerable.Empty<Company>();
+		var document = await _parser.GetDocumentAsync(_settings.GetUrl("1"));
 		var sectors = document.QuerySelectorAll("#ddlSektor").FirstOrDefault();
-		var sectorList = SectorListModule.InitSectorList();
+		var list = new List<Company>();
 		if (sectors != null)
 		{
 			foreach (var sector in sectors.Children)
 			{
-				if (!int.TryParse(sector.GetAttribute("value"), out int id))
+				if (!int.TryParse(sector.GetAttribute("value"), out int sectorId))
 					continue;
-				var sectorId = SectorIdModule.Create(id);
-				if (sectorId.IsError)
-				{
-					_logger.LogWarning("Error while parsing id {id}, error: {error}", id, sectorId.ErrorValue);
-					continue;
-				}
-				var sectorName = NameModule.Create(sector.TextContent);
-				var sectorDetailsDocument = await _parser.GetDocumentAsync(_settings.GetUrl(sectorId.ResultValue));
-				var sectorFinancialsHtml = sectorDetailsDocument.QuerySelector("#sectorAreaBigData");
-				if (sectorFinancialsHtml is null)
-				{
-					_logger.LogWarning("Couldn't parse {id} is sector's financials", sectorId);
-					continue;
-				}
-				if (!float.TryParse(sectorFinancialsHtml.Children[1].TextContent, out float peRaw)) { continue; }
-				if (!float.TryParse(sectorFinancialsHtml.Children[4].TextContent, out float pbRaw)) { continue; }
-				var priceEarnings = PriceEarningsModule.Create(peRaw);
-				var priceToBook = PriceToBookModule.Create(pbRaw);
-				if (sectorName.IsError || priceEarnings.IsError || priceToBook.IsError)
-				{
-					_logger.LogWarning("Couldn't parse the sector id: {id}", sectorId);
-					continue;
-				}
-				var companies = await GetCompanies(sectorId.ResultValue);
-				var newSector = new Sector(sectorId.ResultValue,
-				sectorName.ResultValue,
-				priceEarnings.ResultValue,
-				priceToBook.ResultValue,
-				companies);
-
-				sectorList = SectorListModule.AddSector(newSector, sectorList);
+				var companies = await GetCompanies(sectorId);
+				list.AddRange(companies);
 			}
 		}
-		return sectorList;
+		return list;
 	}
 
-	private async Task<Company[]> GetCompanies(SectorId sectorId)
+	private async Task<IReadOnlyCollection<Company>> GetCompanies(int sectorId)
 	{
 		var result = new List<Company>();
-		var document = await _parser.GetDocumentAsync(_settings.GetUrl(sectorId));
+		var document = await _parser.GetDocumentAsync(sectorId.ToString());
 		var summary = document.QuerySelectorAll("#temelTBody_Ozet").FirstOrDefault();
 		var financials = document.QuerySelectorAll("#temelTBody_Finansal").FirstOrDefault();
 		if (summary is null || financials is null) { return result.ToArray(); }
@@ -91,13 +73,10 @@ public class IsInvestmentService : IIsInvestmentService
 	{
 		if (!decimal.TryParse(summary.Children[3].TextContent, out decimal lastPriceRaw)) { return Error.Validation(IsInvestmentErrors.LastPriceParseError); }
 		if (!decimal.TryParse(summary.Children[4].TextContent, out decimal marketWorthRaw)) { return Error.Validation(IsInvestmentErrors.MarketWorthParseError); }
-		if (!decimal.TryParse(summary.Children[6].TextContent, out decimal publicRatioRaw)) { return Error.Validation(IsInvestmentErrors.PublicRatioParseError); }
+		if (!float.TryParse(summary.Children[6].TextContent, out float publicRatioRaw)) { return Error.Validation(IsInvestmentErrors.PublicRatioParseError); }
 		if (!decimal.TryParse(summary.Children[7].TextContent, out decimal capitalRaw)) { return Error.Validation(IsInvestmentErrors.CapitalParseError); }
 		if (!float.TryParse(financialsElement.Children[2].TextContent, out float peRaw)) { return Error.Validation(IsInvestmentErrors.PEParseError); }
 		if (!float.TryParse(financialsElement.Children[5].TextContent, out float pbRaw)) { return Error.Validation(IsInvestmentErrors.PBParseError); }
-
-		var companySymbol = SymbolModule.Create(summary.Children[0].TextContent);
-		if (companySymbol.IsError) return Error.Validation(companySymbol.ErrorValue.ToString());
 
 		// var financeData = await _isInvestmentHttpClient.GetFinancials(SymbolModule.Value(companySymbol.ResultValue));
 		//if (financeData?.Financials is null || financeData.Financials.Count == 0)
@@ -108,18 +87,33 @@ public class IsInvestmentService : IIsInvestmentService
 		//if (profits.IsError || operationProfits.IsError)
 		//    return Error.NotFound("Company financials not found");
 
-		var company = CompanyModule.Create(summary.Children[0].TextContent,
-		summary.Children[1].TextContent,
-		lastPriceRaw, marketWorthRaw, publicRatioRaw, capitalRaw, peRaw, pbRaw,
-		Currency.TRY);
+		var request = new CompanyCreateRequest(summary.Children[0].TextContent, summary.Children[1].TextContent,
+		publicRatioRaw, peRaw, pbRaw, 3.5f, 3.5f, "", 3.5M, 3.5M, 3.5M, 3.5M);
+		var company = CompanyModule.Create(request);
 
 		if (company.IsError) return Error.Validation(company.ErrorValue.ToString());
 
 		return company.ResultValue;
 	}
+
+	private async Task<TryExhangeRates?> GetTryExchangeRates()
+	{
+		using HttpClient client = _httpClientFactory.CreateClient();
+
+		try
+		{
+			var exchanges = await client.GetFromJsonAsync<TryExhangeRates>(_exchangeSettings.Url.Replace("{currency_code}", "try"));
+			return exchanges;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError("Error while getting exhange rate: {Error}", ex);
+		}
+		return null;
+	}
 }
 
 public interface IIsInvestmentService
 {
-	Task<SectorList> GetValuations();
+	Task<IEnumerable<Company>> GetCompanyValuations();
 }

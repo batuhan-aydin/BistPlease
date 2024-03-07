@@ -22,10 +22,16 @@ type PriceEarnings = private PriceEarnings of float32
 type PriceToBook = private PriceToBook of float32
 
 [<IsReadOnly; Struct>]
-type SectorId = private SectorId of int
+type EvEbitda = private EvEbitda of float32
 
 [<IsReadOnly; Struct>]
-type PublicOwnershipRatio = private PublicOwnershipRatio of decimal
+type EvSales = private EvSales of float32
+
+[<IsReadOnly; Struct>]
+type TagId = private TagId of int
+
+[<IsReadOnly; Struct>]
+type PublicOwnershipRatio = private PublicOwnershipRatio of float32
 
 [<IsReadOnly; Struct>]
 type Profit = private Profit of bigint
@@ -45,6 +51,8 @@ type ValidationError =
     | InvalidName
     | InvalidPriceEarnings
     | InvalidPriceToBook
+    | InvalidEvEbitda
+    | InvalidEvSales
     | InvalidSectorId
     | InvalidPublicOwnershipRatio
     | InvalidLastFinancialsTerm
@@ -106,16 +114,34 @@ module PriceToBook =
         else 
             PriceToBook(rawPriceToBook) |> Ok
 
-module SectorId = 
-    let Value(SectorId sectorId) = sectorId
+module EvEbitda = 
+    let Value(EvEbitda pb) = pb
 
-    let Create(rawId: int) : Result<SectorId, ValidationError> = 
+    let Create(rawEvEbitda: float32) : Result<EvEbitda, ValidationError> =
+        if (rawEvEbitda < 0.0f) then
+            InvalidEvEbitda|> Error 
+        else 
+            EvEbitda(rawEvEbitda) |> Ok
+
+module EvSales = 
+    let Value(EvSales pb) = pb
+
+    let Create(rawEvSales: float32) : Result<EvSales, ValidationError> =
+        if (rawEvSales < 0.0f) then
+            InvalidEvSales|> Error 
+        else 
+            EvSales(rawEvSales) |> Ok
+
+module TagId = 
+    let Value(TagId tagId) = tagId
+
+    let Create(rawId: int) : Result<TagId, ValidationError> = 
         if (rawId < 0) then 
             InvalidSectorId |> Error
         else
-            SectorId(rawId) |> Ok
+            TagId(rawId) |> Ok
 
-    let GetSectorIdUrlString(sectorId: SectorId) : string =
+    let GetSectorIdUrlString(sectorId: TagId) : string =
         let sectorIdValue = Value(sectorId)
         if (sectorIdValue < 10) then 
             sprintf "000%d" sectorIdValue
@@ -127,8 +153,8 @@ module SectorId =
             sprintf "%d" sectorIdValue
 
 module PublicOwnershipRatio =
-    let Create(ratio: decimal) : Result<PublicOwnershipRatio, ValidationError> =
-        if (ratio < 0.0M || ratio > 100.0M) then
+    let Create(ratio: float32) : Result<PublicOwnershipRatio, ValidationError> =
+        if (ratio < 0.0f || ratio > 100.0f) then
             InvalidPublicOwnershipRatio |> Error
         else 
             PublicOwnershipRatio(ratio) |> Ok

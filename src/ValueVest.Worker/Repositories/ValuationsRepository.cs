@@ -9,26 +9,27 @@ public class ValuationsRepository : BaseRepository, IValuationsRepository
     {
     }
 
-    public Task<int> UpsertSector(Sector sector)
-    {
-        var query = @"INSERT INTO sector (id, name, price_earnings, price_to_book)
-                    VALUES (@Id, @Name, @PriceEarnings, @PriceToBook)
-                    ON CONFLICT(id) DO UPDATE SET
-                    name = @Name,
-                    price_earnings = @PriceEarnings,
-                    price_to_book = @PriceToBook";
-        return ExecuteAsync(query, sector);
-    }
+    //public Task<int> UpsertSector(Sector sector)
+    //{
+    //    var query = @"INSERT INTO sector (id, name, price_earnings, price_to_book)
+    //                VALUES (@Id, @Name, @PriceEarnings, @PriceToBook)
+    //                ON CONFLICT(id) DO UPDATE SET
+    //                name = @Name,
+    //                price_earnings = @PriceEarnings,
+    //                price_to_book = @PriceToBook";
+    //    return ExecuteAsync(query, sector);
+    //}
 
     public Task<int> UpsertCompanies(IEnumerable<Company> companies)
     {
-		var query = @"";
+		var query = @"INSERT INTO company(id, name, public_ownership_ratio)
+                    VALUES (@Symbol, @Name, @PublicOwnershipRatio)";
 		return ExecuteMultipleAsync(query, companies);
 	}
 }
 
 public interface IValuationsRepository
 {
-    Task<int> UpsertSector(Sector sector);
+    //Task<int> UpsertSector(Sector sector);
     Task<int> UpsertCompanies(IEnumerable<Company> companies);
 }

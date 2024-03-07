@@ -9,5 +9,5 @@ public sealed record BistSource
 {
 	public string Base { get; init; } = null!;
 
-	public string GetValuations { get; init; } = null!;
+	public string GetCompanies { get; init; } = null!;
 }

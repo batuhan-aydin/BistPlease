@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
@@ -9,6 +10,8 @@ using System.Collections.Frozen;
 using ValueVest.Worker.Core.Data;
 using ValueVest.Worker.Jobs;
 using ValueVest.Worker.Models;
+using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
 namespace ValueVest.Worker;
 
@@ -35,7 +38,7 @@ internal class Program
         return Host.CreateDefaultBuilder()
             .ConfigureServices((hostContext, services) =>
             {
-                IConfiguration configuration = hostContext.Configuration;
+				IConfiguration configuration = hostContext.Configuration;
                 services.Configure<IsYatirimSettings>(configuration.GetSection(nameof(IsYatirimSettings)));
 				services.Configure<DataSources>(configuration.GetSection(nameof(DataSources)));
 				var dbConnections = new Dictionary<DatabaseConnection, string>
@@ -47,17 +50,18 @@ internal class Program
                 services.AddSingleton<App>();
                 services.AddQuartz(options =>
                 {
-                    options.ScheduleJob<ValuationsJob>(trigger => trigger
-                        .ForJob(ValuationsJob.Key)
-                        .WithIdentity(ValuationsJob.Key.ToString())
+                    options.ScheduleJob<CompaniesJob>(trigger => trigger
+                        .ForJob(CompaniesJob.Key)
+                        .WithIdentity(CompaniesJob.Key.ToString())
                         //.StartAt(new DateTimeOffset())
                         .WithSimpleSchedule(SimpleScheduleBuilder.RepeatHourlyForever()));
                 });
-
-                //var financialsUrl = configuration.GetSection(nameof(IsYatirimSettings)).GetValue<string>("BaseFinancialsUrl");
 				
 				services.AddHttpClient();
-
+                services.AddFusionCache()
+                .WithCysharpMemoryPackSerializer()
+                .WithDistributedCache(new RedisCache(new RedisCacheOptions { Configuration = "CONNECTION STRING" }))
+				.WithBackplane(new RedisBackplane(new RedisBackplaneOptions { Configuration = "CONNECTION STRING" }));
                 });
 
     }

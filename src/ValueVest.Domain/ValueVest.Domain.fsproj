@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="SimpleTypes.fs" />
     <Compile Include="CompoundTypes.fs" />
+    <Compile Include="Company.fs" />
   </ItemGroup>
 
   <ItemGroup>
