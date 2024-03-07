@@ -60,8 +60,8 @@ internal class Program
 				services.AddHttpClient();
                 services.AddFusionCache()
                 .WithCysharpMemoryPackSerializer()
-                .WithDistributedCache(new RedisCache(new RedisCacheOptions { Configuration = "CONNECTION STRING" }))
-				.WithBackplane(new RedisBackplane(new RedisBackplaneOptions { Configuration = "CONNECTION STRING" }));
+                .WithDistributedCache(new RedisCache(new RedisCacheOptions { Configuration = configuration.GetConnectionString("Cache") }))
+				.WithBackplane(new RedisBackplane(new RedisBackplaneOptions { Configuration = configuration.GetConnectionString("Cache") }));
                 });
 
     }
