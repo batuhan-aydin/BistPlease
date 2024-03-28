@@ -88,6 +88,11 @@ module Price =
         else 
             Price(price) |> Ok
 
+    let DivideValues price1 price2 : decimal =
+        let value1 = Value(price1)
+        let value2 =  Value(price2)
+        value1 / value2
+
 module Name = 
     let Value(Name name) = name
 

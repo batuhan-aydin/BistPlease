@@ -17,12 +17,12 @@ public class IsInvestmentHttpClient : IIsInvestmentHttpClient
 	/// </summary>
 	/// <param name="symbol">Company symbol</param>
 	/// <returns>Financials</returns>
-	public async Task<IsFinancialsDto?> GetFinancials(string symbol, Currency currency)
+	public async Task<Models.FinancialsDto?> GetFinancials(string symbol, Currency currency)
 	{
 		var currentYear = DateTime.Now.Year;
-		var currentYearResult = await _httpClient.GetFromJsonAsync<IsFinancialsDto?>(GetFinancialsUrl(symbol, currentYear, currency));
+		var currentYearResult = await _httpClient.GetFromJsonAsync<Models.FinancialsDto?>(GetFinancialsUrl(symbol, currentYear, currency));
 		if (currentYearResult?.Financials is null)
-			return await _httpClient.GetFromJsonAsync<IsFinancialsDto?>(GetFinancialsUrl(symbol, currentYear - 1, currency));
+			return await _httpClient.GetFromJsonAsync<Models.FinancialsDto?>(GetFinancialsUrl(symbol, currentYear - 1, currency));
 		return currentYearResult;
 	}
 
@@ -35,5 +35,5 @@ public class IsInvestmentHttpClient : IIsInvestmentHttpClient
 
 public interface IIsInvestmentHttpClient
 {
-	Task<IsFinancialsDto?> GetFinancials(string symbol, Currency currency);
+	Task<Models.FinancialsDto?> GetFinancials(string symbol, Currency currency);
 }

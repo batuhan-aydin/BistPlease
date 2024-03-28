@@ -11,10 +11,10 @@ type CompanyFinancials = {
 }
 
 type CompanyFinancialRatios = {
-    PriceEarnings: PriceEarnings
-    PriceToBook: PriceToBook
-    EvEbitda: EvEbitda
-    EvSales: EvSales
+    PriceEarnings: PriceEarnings option
+    PriceToBook: PriceToBook  option
+    EvEbitda: EvEbitda option
+    EvSales: EvSales option
     LastBalanceTerm: LastBalanceTerm
 }
 
@@ -29,25 +29,8 @@ type Company = {
     Name: Name
     PublicOwnershipRatio: PublicOwnershipRatio
     FinancialRatios: CompanyFinancialRatios
-    CompanyValuationsTry: CompanyValuations
-    CompanyValuationsUsd: CompanyValuations
+    CompanyValuations: CompanyValuations
 }
-
-type CompanyCreateRequest = {
-    RawSymbol: string
-    RawName: string
-    RawPublicOwnershipRatio: float32
-    RawPriceEarnings: float32
-    RawPriceToBook: float32
-    RawEvEbitda: float32
-    RawEvSales: float32
-    RawLastBalanceTerm: string
-    UsdTryExhangeRate: decimal
-    RawLastClosingPrice: decimal
-    RawMarketValue: decimal
-    RawCapital: decimal
-}
-
 
 module CompanyFinancials = 
     let Create lastTermProfit operationProfit : CompanyFinancials =
@@ -64,10 +47,10 @@ module CompanyFinancialRatios =
         let! evSales = rawEvSales |> EvSales.Create
         let! lastBalanceTerm = rawLastBalanceTerm |> LastBalanceTerm.Create
         let result = {
-          PriceEarnings = priceEarnings
-          PriceToBook = priceToBook
-          EvEbitda = evEbitda
-          EvSales = evSales
+          PriceEarnings = Some priceEarnings
+          PriceToBook = Some priceToBook
+          EvEbitda = Some evEbitda
+          EvSales = Some evSales
           LastBalanceTerm = lastBalanceTerm
         }
         return result
@@ -75,11 +58,11 @@ module CompanyFinancialRatios =
 
 
 module CompanyValuations =
-    let Create  (rawLastClosingPrice: decimal) (rawMarketValue: decimal) (rawCapital: decimal) (exchangeRate: decimal) (currency: Currency)  : Result<CompanyValuations, ValidationError> = 
+    let Create  (rawLastClosingPrice: decimal) (rawMarketValue: decimal) (rawCapital: decimal) (currency: Currency)  : Result<CompanyValuations, ValidationError> = 
         result {
-             let! lastClosingPrice = Worth.Create(rawLastClosingPrice / exchangeRate, currency)
-             let! marketValue = Worth.Create(rawMarketValue / exchangeRate, currency)
-             let! capital = Worth.Create(rawCapital / exchangeRate, currency)
+             let! lastClosingPrice = Worth.Create(rawLastClosingPrice, currency)
+             let! marketValue = Worth.Create(rawMarketValue, currency)
+             let! capital = Worth.Create(rawCapital, currency)
              let result = {
                 LastClosingPrice = lastClosingPrice
                 MarketValue = marketValue
@@ -87,23 +70,3 @@ module CompanyValuations =
              }
              return result
         }
-
-module Company = 
-    let Create (request: CompanyCreateRequest) : Result<Company, ValidationError> =
-        result { 
-            let! symbol = request.RawSymbol |> Symbol.Create 
-            let! name = request.RawName |> Name.Create 
-            let! publicOwnershipRatio = request.RawPublicOwnershipRatio |> PublicOwnershipRatio.Create
-            let! companyFinancialRatios = CompanyFinancialRatios.Create request.RawPriceEarnings request.RawPriceToBook request.RawEvEbitda request.RawEvSales request.RawLastBalanceTerm
-            let! companyValuationsTry = CompanyValuations.Create request.RawLastClosingPrice request.RawMarketValue request.RawCapital 1.0M Currency.TRY 
-            let! companyValuationsUsd = CompanyValuations.Create request.RawLastClosingPrice request.RawMarketValue request.RawCapital request.UsdTryExhangeRate Currency.TRY 
-            let company = { 
-                Symbol = symbol
-                Name = name
-                PublicOwnershipRatio = publicOwnershipRatio
-                FinancialRatios = companyFinancialRatios
-                CompanyValuationsTry = companyValuationsTry
-                CompanyValuationsUsd = companyValuationsUsd
-            }
-            return company
-        } 

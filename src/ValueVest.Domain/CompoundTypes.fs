@@ -26,7 +26,7 @@ type FinancialsByTerm = {
     FirstTerm: Worth option
     SecondTerm: Worth option
     ThirdTerm: Worth option
-    FourhTerm: Worth option
+    FourthTerm: Worth option
 }
 
 
@@ -59,6 +59,7 @@ module Worth =
         match Decimal.TryParse rawPrice with 
             | (true, value) ->  Create(value, currency)
             | _ -> ValidationError.InvalidWorth |> Error
+        
 
 module FinancialsByTerm = 
     let Create rawFirstTerm rawSecondTerm rawThirdTerm rawFourthTerm currency : Result<FinancialsByTerm, ValidationError> = 
@@ -68,6 +69,6 @@ module FinancialsByTerm =
             let thirdTerm = Worth.CreateFromString(rawThirdTerm, currency) |> CommonFunctions.ResultToOption
             let fourthTerm = Worth.CreateFromString(rawFourthTerm, currency) |> CommonFunctions.ResultToOption
             let financialsTerm = { FirstTerm = firstTerm ; SecondTerm = secondTerm; 
-            ThirdTerm = thirdTerm; FourhTerm = fourthTerm }
+            ThirdTerm = thirdTerm; FourthTerm = fourthTerm }
             return financialsTerm
         }

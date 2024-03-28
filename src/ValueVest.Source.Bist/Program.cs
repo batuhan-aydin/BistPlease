@@ -1,5 +1,5 @@
-using AngleSharp;
 using Microsoft.AspNetCore.Mvc;
+using ValueVest.Source.Bist.Core;
 using ValueVest.Source.Bist.Models;
 using ValueVest.Source.Bist.Services;
 
@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.Configure<IsInvestmentSettings>(builder.Configuration.GetSection(nameof(IsInvestmentSettings)));
 builder.Services.Configure<ExhangesApiSettings>(builder.Configuration.GetSection(nameof(ExhangesApiSettings)));
+builder.Services.AddScoped<IWebParser, WebParser>();
 builder.Services.AddScoped<IIsInvestmentService, IsInvestmentService>();
 
 var app = builder.Build();
@@ -25,10 +26,18 @@ if (app.Environment.IsDevelopment())
 
 app.MapGet("/companies", ([FromServices] IIsInvestmentService service) =>
 {
-	var result = service.GetCompanyValuations();
+	var result = service.GetCompanies();
 	return result;
 })
 .WithName("Companies")
+.WithOpenApi();
+
+//TODO
+app.MapGet("/company/{symbol}", ([FromServices] IIsInvestmentService service, string symbol) =>
+{
+	throw new NotImplementedException();
+})
+.WithName("Company")
 .WithOpenApi();
 
 app.Run();
