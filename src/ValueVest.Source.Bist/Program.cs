@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ValueVest.Domain;
 using ValueVest.Source.Bist.Core;
 using ValueVest.Source.Bist.Models;
 using ValueVest.Source.Bist.Services;
@@ -24,18 +25,21 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
-app.MapGet("/companies", ([FromServices] IIsInvestmentService service) =>
+app.MapGet("/companies", async ([FromServices] IIsInvestmentService service) =>
 {
-	var result = service.GetCompanies();
+	var result = await service.GetCompanies();
 	return result;
 })
 .WithName("Companies")
 .WithOpenApi();
 
-//TODO
-app.MapGet("/company/{symbol}", ([FromServices] IIsInvestmentService service, string symbol) =>
+app.MapGet("/company/{symbol}", async ([FromServices] IIsInvestmentService service, string symbol,
+[FromQuery] string currency) =>
 {
-	throw new NotImplementedException();
+	var currencyValue = currency == "USD" ? Currency.USD : Currency.TRY;
+	var result = await service.GetCompany(symbol, currencyValue);
+	return result.IsError ? throw new InvalidOperationException(result.FirstError.ToString()) 
+	: CommonFunctions.Serialize(result.Value);
 })
 .WithName("Company")
 .WithOpenApi();

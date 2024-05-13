@@ -78,7 +78,9 @@ public static class FinancialsExtensions
 		{ FinancialValueType.Amortization, "4B" },
 		{ FinancialValueType.AdministrativeCosts, "3DB" },
 		{ FinancialValueType.MarketingCosts, "3DA" },
-		{ FinancialValueType.ResearchAndDevelopmentCosts, "3DC" }
+		{ FinancialValueType.ResearchAndDevelopmentCosts, "3DC" },
+		{ FinancialValueType.ParentShares, "3Z" },
+		{ FinancialValueType.ParentShareholdersCapital, "2O" }
 	}.ToFrozenDictionary();
 
     public static decimal? GetWorthOrDefault(this ErrorOr<Worth> worth)
@@ -96,5 +98,6 @@ public enum FinancialValueType
 	ShortTermFinancialInvestments, FinancialInvestments,
 	ShortTermFinancialLoans, LongTermFinancialLoans,
 	GrossProfit, Amortization, AdministrativeCosts,
-	MarketingCosts, ResearchAndDevelopmentCosts
+	MarketingCosts, ResearchAndDevelopmentCosts,
+	ParentShares, ParentShareholdersCapital
 }

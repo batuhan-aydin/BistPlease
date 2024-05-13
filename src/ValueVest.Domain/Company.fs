@@ -2,6 +2,9 @@
 
 open ValueVest.Domain
 open FsToolkit.ErrorHandling
+open System.Text.Json
+open System.Text.Json.Serialization
+
 
 
 /// We will add more data into this, for now keeping it simple
@@ -14,7 +17,7 @@ type CompanyFinancialRatios = {
     PriceEarnings: PriceEarnings option
     PriceToBook: PriceToBook  option
     EvEbitda: EvEbitda option
-    EvSales: EvSales option
+    //EvSales: EvSales option
     LastBalanceTerm: LastBalanceTerm
 }
 
@@ -24,12 +27,13 @@ type CompanyValuations = {
     Capital: Worth
 }
 
+[<JsonFSharpConverter>]
 type Company = {
     Symbol: Symbol
     Name: Name
     PublicOwnershipRatio: PublicOwnershipRatio
     FinancialRatios: CompanyFinancialRatios
-    CompanyValuations: CompanyValuations
+    Valuations: CompanyValuations
 }
 
 module CompanyFinancials = 
@@ -39,18 +43,28 @@ module CompanyFinancials =
             financials
 
 module CompanyFinancialRatios =
-    let Create (rawPriceEarnings: float32) (rawPriceToBook: float32) (rawEvEbitda: float32) (rawEvSales: float32) (rawLastBalanceTerm: string)  : Result<CompanyFinancialRatios, ValidationError> =
+    let Create (rawPriceEarnings: float32 option) (rawPriceToBook: float32 option) (rawEvEbitda: float32 option) (rawLastBalanceTerm: string)  : Result<CompanyFinancialRatios, ValidationError> =
       result {
-        let! priceEarnings = rawPriceEarnings |> PriceEarnings.Create
-        let! priceToBook = rawPriceToBook |> PriceToBook.Create
-        let! evEbitda = rawEvEbitda |> EvEbitda.Create
-        let! evSales = rawEvSales |> EvSales.Create
+        let priceEarnings = match rawPriceEarnings with 
+                            | None  -> None 
+                            | Some(value) -> match (value |> PriceEarnings.Create) with 
+                                                      | Ok(value)  -> Some(value)
+                                                      | _ -> None
+        let priceToBook = match rawPriceToBook with 
+                            | None  -> None 
+                            | Some(value) -> match (value |> PriceToBook.Create) with 
+                                                      | Ok(value)  -> Some(value)
+                                                      | _ -> None
+        let evEbitda = match rawEvEbitda with 
+                            | None  -> None 
+                            | Some(value) -> match (value |> EvEbitda.Create) with 
+                                                      | Ok(value)  -> Some(value)
+                                                      | _ -> None
         let! lastBalanceTerm = rawLastBalanceTerm |> LastBalanceTerm.Create
         let result = {
-          PriceEarnings = Some priceEarnings
-          PriceToBook = Some priceToBook
-          EvEbitda = Some evEbitda
-          EvSales = Some evSales
+          PriceEarnings = priceEarnings
+          PriceToBook = priceToBook
+          EvEbitda = evEbitda
           LastBalanceTerm = lastBalanceTerm
         }
         return result
@@ -70,3 +84,17 @@ module CompanyValuations =
              }
              return result
         }
+
+module Company = 
+    let Create symbol name publicOwnershipRatio financials valuations = 
+        let company = {
+            Symbol = symbol
+            Name = name 
+            PublicOwnershipRatio = publicOwnershipRatio
+            FinancialRatios = financials
+            Valuations = valuations
+        }
+        company
+
+    let Seriliaze company = 
+        JsonSerializer.Serialize company

@@ -1,32 +1,50 @@
-﻿namespace ValueVest.Source.Bist.Models;
+﻿using ValueVest.Domain;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace ValueVest.Source.Bist.Models;
 
 public sealed record IsInvestmentSettings
 {
 	public required string BaseSectorUrl { get; init; }
+    public required string BaseCompanyPageUrl { get; init; }
 	public required string BaseFinancialsUrl { get; init; }
 	public required string BaseFetchStockUrl { get; init; }
 
     public string GetUrl(string sectorId) => BaseSectorUrl.Replace("{SectorId}", sectorId);
+    public string GetCompanyPageUrl(string symbol) => BaseCompanyPageUrl.Replace("{Symbol}", symbol);
 
-	public string GetFinancialsUrl(string symbol, string lastBalanceTerm)
+	public string GetFinancialsUrl(string symbol, string lastBalanceTerm,
+    Currency currency)
 	{
         var lastFourYears = GetLastFourTerms(lastBalanceTerm);
         if (lastFourYears is null || lastFourYears.Count < 4) 
             return string.Empty;
         return BaseFinancialsUrl.Replace("{Symbol}", symbol)
+        .Replace("{Exchange}", currency.ToString())
         .Replace("{Year1}", lastFourYears[0].Item2.ToString())
         .Replace("{Year2}", lastFourYears[1].Item2.ToString())
         .Replace("{Year3}", lastFourYears[2].Item2.ToString())
         .Replace("{Year4}", lastFourYears[3].Item2.ToString())
-        .Replace("{Period1}", lastFourYears[0].Item2.ToString())
-        .Replace("{Period2}", lastFourYears[1].Item2.ToString())
-        .Replace("{Period3}", lastFourYears[2].Item2.ToString())
-        .Replace("{Period4}", lastFourYears[3].Item2.ToString());
+        .Replace("{Period1}", lastFourYears[0].Item1.ToString())
+        .Replace("{Period2}", lastFourYears[1].Item1.ToString())
+        .Replace("{Period3}", lastFourYears[2].Item1.ToString())
+        .Replace("{Period4}", lastFourYears[3].Item1.ToString());
 
     }
 
-	public string GetFetchStockUrl(string symbol, string startDate, string endDate)
-	=> BaseFetchStockUrl.Replace("{Symbol}", symbol).Replace("{StartDate}", startDate).Replace("{EndDate}", endDate);
+	public string GetFetchStockUrl(string symbol, DateTime? startDate)
+    {
+        startDate = startDate.HasValue ? startDate.Value : DateTime.Now;
+        var endDate = DateTime.Now.AddDays(1);
+        if (startDate.Value.DayOfWeek == DayOfWeek.Monday || startDate.Value.DayOfWeek == DayOfWeek.Saturday || startDate.Value.DayOfWeek == DayOfWeek.Sunday)
+        {
+            while (startDate.Value.DayOfWeek == DayOfWeek.Monday || startDate.Value.DayOfWeek == DayOfWeek.Saturday || startDate.Value.DayOfWeek == DayOfWeek.Sunday)
+            {
+                startDate = startDate.Value.AddDays(-1);
+            }
+        }
+        return BaseFetchStockUrl.Replace("{Symbol}", symbol).Replace("{StartDate}", startDate.Value.ToString("dd-MM-yyyy")).Replace("{EndDate}", endDate.ToString("dd-MM-yyyy"));
+    }
 
     public static List<(int, int)> GetLastFourTerms(string term)
     {

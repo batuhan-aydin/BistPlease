@@ -2,6 +2,8 @@
 
 open System.Runtime.CompilerServices
 open System
+open System.Text.Json.Serialization
+open System.Text.Json
 
 [<IsReadOnly; Struct>]
 type Currency = TRY | USD
@@ -69,6 +71,13 @@ module CommonFunctions =
         | Ok value -> Some value
         | Error _ -> None
 
+    let options =
+        JsonFSharpOptions.Default()
+            .ToJsonSerializerOptions()
+
+    let Serialize element : string =
+        JsonSerializer.Serialize(element, options)
+
 module Symbol = 
     let Value(Symbol symbol) = symbol
 
@@ -83,10 +92,7 @@ module Price =
     let Value(Price price) = price
 
     let Create(price: decimal) : Result<Price, ValidationError> = 
-        if (price < 0.0M) then 
-            InvalidPrice |> Error
-        else 
-            Price(price) |> Ok
+        Price(price) |> Ok
 
     let DivideValues price1 price2 : decimal =
         let value1 = Value(price1)
